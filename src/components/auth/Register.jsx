@@ -1,130 +1,136 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import api from "../../api/axiosConfig";
-import { AuthContext } from "../../Context/AuthContext";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     gender: "Male",
   });
-  const [step, setStep] = useState(1);
-  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post("/auth/register", formData);
-      toast.success("OTP sent to your email!");
-      setStep(2);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed");
-    }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleVerifyOTP = async (e) => {
+  const handlePaymentAndRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      const res = await api.post("/auth/verify-otp", {
-        email: formData.email,
-        otp,
+      // 1. Create order on your backend
+      const orderRes = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 9, type: "registration" }),
       });
-      login(res.data.user, res.data.token);
-      toast.success("Verification complete!");
-      navigate("/radar");
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) throw new Error("Failed to initiate payment");
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "NEARME",
+        description: "Lifetime Registration Fee",
+        order_id: orderData.order.id,
+        handler: async function (response) {
+          toast.success("Payment successful! Creating profile...");
+          // Backend registration API call goes here
+          navigate("/login");
+        },
+        prefill: { email: formData.email },
+        theme: { color: "#000000" }, // Updated to match the black/white theme
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Invalid OTP");
+      toast.error(error.message || "Payment failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px" }}>
-      <h2>Register</h2>
-      {step === 1 ? (
-        <form onSubmit={handleRegister}>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Email</label>
-            <br />
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-black">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+            Join NearMe
+          </h2>
+          <p className="text-gray-500 font-medium mt-2">
+            Unlock lifetime access for just ₹9.
+          </p>
+        </div>
+
+        <form onSubmit={handlePaymentAndRegister} className="space-y-5">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Email
+            </label>
             <input
               type="email"
+              name="email"
               required
-              style={{ width: "100%", padding: "8px" }}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={handleChange}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+              placeholder="you@example.com"
             />
           </div>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Password</label>
-            <br />
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Password
+            </label>
             <input
               type="password"
+              name="password"
               required
-              style={{ width: "100%", padding: "8px" }}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={handleChange}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
+              placeholder="••••••••"
             />
           </div>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Gender</label>
-            <br />
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Gender
+            </label>
             <select
-              style={{ width: "100%", padding: "8px" }}
-              onChange={(e) =>
-                setFormData({ ...formData, gender: e.target.value })
-              }
+              name="gender"
+              onChange={handleChange}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors appearance-none font-medium"
             >
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
           </div>
+
           <button
             type="submit"
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#28a745",
-              color: "#fff",
-            }}
+            disabled={loading}
+            className="w-full bg-black hover:bg-gray-800 text-white font-bold rounded-xl px-4 py-4 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100 flex justify-center items-center mt-8 shadow-lg"
           >
-            Get OTP
-          </button>
-          <p style={{ marginTop: "15px" }}>
-            Already registered? <Link to="/login">Login</Link>
-          </p>
-        </form>
-      ) : (
-        <form onSubmit={handleVerifyOTP}>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Enter 6-Digit OTP</label>
-            <br />
-            <input
-              type="text"
-              required
-              style={{ width: "100%", padding: "8px" }}
-              onChange={(e) => setOtp(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#28a745",
-              color: "#fff",
-            }}
-          >
-            Verify & Login
+            {loading ? "Processing..." : "Pay ₹9 & Register"}
           </button>
         </form>
-      )}
+
+        <p className="text-center text-gray-500 mt-8 text-sm font-medium">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-black hover:underline font-bold transition-colors"
+          >
+            Log in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };
