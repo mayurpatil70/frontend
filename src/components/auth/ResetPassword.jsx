@@ -52,12 +52,19 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen bg-nearme-dark flex items-center justify-center p-4 font-sans">
       <div className="max-w-md w-full bg-nearme-card rounded-3xl shadow-2xl p-8 border border-gray-800">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-2xl bg-white shadow-md p-2 border border-gray-700 flex items-center justify-center mb-4">
+            <img
+              src="/logo.png"
+              alt="Date-NearMe"
+              className="w-full h-full object-contain"
+            />
+          </div>
           <h2 className="text-3xl font-bold text-white tracking-wide">
             New Password
           </h2>
           <p className="text-gray-400 mt-2 text-sm">
-            Secure your NearMe account.
+            Secure your Date-NearMe account.
           </p>
         </div>
 

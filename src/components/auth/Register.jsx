@@ -35,7 +35,7 @@ const Register = () => {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID,
         amount: orderData.order.amount,
         currency: "INR",
-        name: "NEARME",
+        name: "Date-NearMe",
         description: "Lifetime Registration Fee",
         order_id: orderData.order.id,
         handler: async function (response) {
@@ -59,11 +59,18 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-black">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
-            Join NearMe
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="w-24 h-24 rounded-2xl bg-white shadow-md p-2 border border-gray-100 flex items-center justify-center mb-3 hover:scale-105 transition-transform duration-300">
+            <img
+              src="/logo.png"
+              alt="Date-NearMe"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+            Join Date-NearMe
           </h2>
-          <p className="text-gray-500 font-medium mt-2">
+          <p className="text-gray-500 font-medium mt-1 text-sm">
             Unlock lifetime access for just ₹9.
           </p>
         </div>

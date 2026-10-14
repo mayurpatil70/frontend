@@ -18,7 +18,7 @@ const Wallet = () => {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID, // Add to frontend .env
         amount: order.amount,
         currency: order.currency,
-        name: "NearMe App",
+        name: "Date-NearMe",
         description: "50 Coins Recharge",
         order_id: order.orderId,
         handler: async (response) => {
@@ -36,7 +36,7 @@ const Wallet = () => {
             toast.error("Payment verification failed");
           }
         },
-        theme: { color: "#3399cc" },
+        theme: { color: "#ff2453" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -59,53 +59,62 @@ const Wallet = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "50px auto",
-        padding: "20px",
-        textAlign: "center",
-      }}
-    >
-      <button onClick={() => navigate("/radar")} style={{ float: "left" }}>
-        Back
-      </button>
-      <div style={{ clear: "both" }}></div>
-
-      <h2>Your Wallet</h2>
-      <h1>{user?.walletBalance} Coins</h1>
-      <p>
-        Status: {user?.hasLifetimeAccess ? "Lifetime Member" : "Unregistered"}
-      </p>
-
-      <button
-        onClick={handleRecharge}
-        style={{
-          width: "100%",
-          padding: "15px",
-          background: "#007bff",
-          color: "#fff",
-          border: "none",
-          marginBottom: "15px",
-        }}
-      >
-        Recharge 50 Coins (₹50)
-      </button>
-
-      {!user?.hasLifetimeAccess && (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-gray-900">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-gray-100 relative">
         <button
-          onClick={handleUnlockLifetime}
-          style={{
-            width: "100%",
-            padding: "15px",
-            background: "#28a745",
-            color: "#fff",
-            border: "none",
-          }}
+          onClick={() => navigate("/radar")}
+          className="absolute top-6 left-6 text-sm font-semibold text-gray-500 hover:text-black flex items-center transition"
         >
-          Unlock Lifetime Access (9 Coins)
+          ← Back
         </button>
-      )}
+
+        {/* Brand Header */}
+        <div className="text-center mt-6 mb-8 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-2xl bg-white shadow-md p-2 border border-gray-100 flex items-center justify-center mb-3">
+            <img
+              src="/logo.png"
+              alt="Date-NearMe"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+            Your Wallet
+          </h2>
+          <span className="inline-block mt-2 px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-full border border-gray-200">
+            {user?.hasLifetimeAccess ? "★ Lifetime Member" : "Standard Account"}
+          </span>
+        </div>
+
+        {/* Balance Display */}
+        <div className="bg-gradient-to-tr from-rose-50 to-orange-50 border border-rose-100 rounded-2xl p-6 text-center mb-6">
+          <span className="text-xs uppercase font-extrabold tracking-wider text-rose-600 block mb-1">
+            Current Balance
+          </span>
+          <div className="text-4xl font-black text-gray-900 flex items-center justify-center">
+            <span className="mr-2">🪙</span> {user?.walletBalance || 0}
+            <span className="text-base font-semibold text-gray-500 ml-2">Coins</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          <button
+            onClick={handleRecharge}
+            className="w-full bg-black hover:bg-gray-800 text-white font-bold rounded-xl py-3.5 px-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-md flex justify-center items-center"
+          >
+            Recharge 50 Coins (₹50)
+          </button>
+
+          {!user?.hasLifetimeAccess && (
+            <button
+              onClick={handleUnlockLifetime}
+              className="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl py-3.5 px-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-md flex justify-center items-center"
+            >
+              Unlock Lifetime Access (9 Coins)
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

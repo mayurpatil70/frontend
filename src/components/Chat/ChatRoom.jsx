@@ -63,82 +63,77 @@ const ChatRoom = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "600px",
-        margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-      }}
-    >
-      <div style={{ padding: "15px", background: "#333", color: "#fff" }}>
-        <button
-          onClick={() => navigate("/radar")}
-          style={{ marginRight: "15px" }}
-        >
-          Back
-        </button>
-        Chatting...
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          padding: "20px",
-          overflowY: "auto",
-          background: "#f4f4f4",
-        }}
-      >
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            style={{
-              textAlign: msg.isMine ? "right" : "left",
-              marginBottom: "10px",
-            }}
+    <div className="max-w-xl mx-auto flex flex-col h-screen bg-gray-50 border-x border-gray-200 font-sans">
+      {/* Header with Date-NearMe Branding */}
+      <div className="px-4 py-3 bg-white/95 backdrop-blur-md border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => navigate("/radar")}
+            className="text-gray-600 hover:text-black font-bold text-sm px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition"
           >
-            <span
-              style={{
-                background: msg.isMine ? "#007bff" : "#ddd",
-                color: msg.isMine ? "#fff" : "#000",
-                padding: "10px",
-                borderRadius: "10px",
-                display: "inline-block",
-                maxWidth: "70%",
-              }}
-            >
-              {msg.message}
-            </span>
+            ← Back
+          </button>
+          <div className="flex items-center space-x-2">
+            <img
+              src="/logo.png"
+              alt="Date-NearMe"
+              className="w-8 h-8 object-contain rounded-lg shadow-sm"
+            />
+            <div>
+              <span className="font-extrabold text-sm text-gray-900 block leading-tight">
+                Date-NearMe Chat
+              </span>
+              <span className="text-[11px] text-green-600 font-semibold flex items-center">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1 inline-block animate-pulse"></span>
+                Active Escrow Slot
+              </span>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
 
+      {/* Messages Feed */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-100/60">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400">
+            <img src="/logo.png" alt="Date-NearMe" className="w-16 h-16 opacity-30 mb-2" />
+            <p className="text-sm font-medium">Say hello! Break the ice without ghosting.</p>
+          </div>
+        ) : (
+          messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${msg.isMine ? "justify-end" : "justify-start"}`}
+            >
+              <span
+                className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm font-medium shadow-sm ${
+                  msg.isMine
+                    ? "bg-black text-white rounded-br-none"
+                    : "bg-white text-gray-900 border border-gray-200 rounded-bl-none"
+                }`}
+              >
+                {msg.message}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Input Bar */}
       <form
         onSubmit={sendMessage}
-        style={{ padding: "15px", display: "flex", background: "#fff" }}
+        className="p-3 bg-white border-t border-gray-200 flex items-center space-x-2"
       >
         <input
           type="text"
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
-          placeholder="Type a message..."
-          style={{
-            flex: 1,
-            padding: "10px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
-          }}
+          placeholder="Type a thoughtful message..."
+          className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-black transition"
         />
         <button
           type="submit"
-          style={{
-            marginLeft: "10px",
-            padding: "10px 20px",
-            background: "#28a745",
-            color: "#fff",
-            border: "none",
-          }}
+          className="bg-black hover:bg-gray-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition active:scale-95 shadow-md"
         >
           Send
         </button>

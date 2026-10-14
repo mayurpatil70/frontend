@@ -223,9 +223,21 @@ const Radar = () => {
       </div>
 
       {/* Top Navigation */}
-      <div className="absolute top-0 w-full z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
-        {/* Left: Stories */}
-        <div className="flex space-x-3 overflow-x-auto scrollbar-hide items-center">
+      <div className="absolute top-0 w-full z-30 bg-white/95 backdrop-blur-md border-b border-gray-200 px-3 py-2.5 flex justify-between items-center shadow-sm">
+        {/* Brand Logo */}
+        <div className="flex items-center space-x-2 shrink-0 mr-3 cursor-pointer">
+          <img
+            src="/logo.png"
+            alt="Date-NearMe Logo"
+            className="w-9 h-9 object-contain rounded-xl shadow-sm hover:scale-105 transition-transform"
+          />
+          <span className="font-extrabold text-base tracking-tight text-gray-900 hidden md:inline-block">
+            Date<span className="text-rose-500">-Near</span><span className="text-orange-500">Me</span>
+          </span>
+        </div>
+
+        {/* Stories */}
+        <div className="flex space-x-3 overflow-x-auto scrollbar-hide items-center flex-1">
           <div
             className="flex flex-col items-center cursor-pointer"
             onClick={() => fileInputRef.current.click()}
