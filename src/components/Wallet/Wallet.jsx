@@ -8,14 +8,28 @@ const Wallet = () => {
   const { user, updateWallet } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const isAdmin =
+    user?.email?.toLowerCase() === "noballondesk@gmail.com" || user?.isAdmin;
+
   const handleRecharge = async () => {
+    // ADMIN TEST BYPASS: Add 100 coins immediately without Razorpay
+    if (isAdmin) {
+      const newBal = (user?.walletBalance || 0) + 100;
+      updateWallet(newBal);
+      toast.success("⚡ Admin Pass: Added 100 coins instantly!");
+      return;
+    }
+
     try {
       // 1. Create Order on Backend
       const { data: order } = await api.post("/wallet/create-order");
 
       // 2. Open Razorpay Checkout
+      const razorpayKey =
+        process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_Tfq9kcJ78djyjL";
+
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID, // Add to frontend .env
+        key: razorpayKey,
         amount: order.amount,
         currency: order.currency,
         name: "Date-NearMe",

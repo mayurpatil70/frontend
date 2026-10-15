@@ -18,9 +18,60 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isAdmin =
+    formData.email.trim().toLowerCase() === "noballondesk@gmail.com";
+
   const handlePaymentAndRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // ADMIN BYPASS: Bypass Razorpay completely for noballondesk@gmail.com
+    if (isAdmin) {
+      try {
+        const { data } = await api.post("/auth/register", formData);
+        login(
+          {
+            id: data.id,
+            email: data.email,
+            walletBalance: 500,
+            hasLifetimeAccess: true,
+            isAdmin: true,
+          },
+          data.token,
+        );
+        toast.success("Admin access granted! Welcome, Master Tester.", {
+          duration: 4000,
+        });
+        navigate("/radar");
+        return;
+      } catch (err) {
+        // If already registered, attempt login directly
+        try {
+          const { data } = await api.post("/auth/login", {
+            email: formData.email,
+            password: formData.password,
+          });
+          login(
+            {
+              id: data.id,
+              email: data.email,
+              walletBalance: 500,
+              hasLifetimeAccess: true,
+              isAdmin: true,
+            },
+            data.token,
+          );
+          toast.success("Admin logged in successfully!");
+          navigate("/radar");
+          return;
+        } catch (loginErr) {
+          toast.error(err.response?.data?.message || "Admin setup failed");
+          return;
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
 
     try {
       // 1. Create order on backend via live Vercel API
@@ -31,9 +82,12 @@ const Register = () => {
 
       if (!orderData.success) throw new Error("Failed to initiate payment");
 
-      // 2. Open Razorpay Checkout
+      // 2. Open Razorpay Checkout (with safe key fallback)
+      const razorpayKey =
+        process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_Tfq9kcJ78djyjL";
+
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: orderData.order.amount,
         currency: "INR",
         name: "Date-NearMe",
@@ -57,7 +111,9 @@ const Register = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "Payment initiation failed");
+      toast.error(
+        error.response?.data?.message || error.message || "Payment initiation failed",
+      );
     } finally {
       setLoading(false);
     }
@@ -77,9 +133,15 @@ const Register = () => {
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">
             Join Date-NearMe
           </h2>
-          <p className="text-gray-500 font-medium mt-1 text-sm">
-            Unlock lifetime access for just ₹9.
-          </p>
+          {isAdmin ? (
+            <p className="text-emerald-600 font-bold mt-1 text-sm bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              ⚡ Admin Mode: Free Pass Activated
+            </p>
+          ) : (
+            <p className="text-gray-500 font-medium mt-1 text-sm">
+              Unlock lifetime access for just ₹9.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handlePaymentAndRegister} className="space-y-5">
@@ -129,9 +191,17 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black hover:bg-gray-800 text-white font-bold rounded-xl px-4 py-4 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100 flex justify-center items-center mt-8 shadow-lg"
+            className={`w-full font-bold rounded-xl px-4 py-4 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:hover:scale-100 flex justify-center items-center mt-8 shadow-lg ${
+              isAdmin
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-black hover:bg-gray-800 text-white"
+            }`}
           >
-            {loading ? "Processing..." : "Pay ₹9 & Register"}
+            {loading
+              ? "Processing..."
+              : isAdmin
+                ? "⚡ Enter Free as Admin"
+                : "Pay ₹9 & Register"}
           </button>
         </form>
 
