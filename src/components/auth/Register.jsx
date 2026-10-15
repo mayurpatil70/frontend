@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "../../api/axiosConfig";
+import { AuthContext } from "../../Context/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -20,13 +23,11 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // 1. Create order on your backend
-      const orderRes = await fetch("/api/payments/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 9, type: "registration" }),
+      // 1. Create order on backend via live Vercel API
+      const { data: orderData } = await api.post("/payments/create-order", {
+        amount: 9,
+        type: "registration",
       });
-      const orderData = await orderRes.json();
 
       if (!orderData.success) throw new Error("Failed to initiate payment");
 
@@ -39,18 +40,24 @@ const Register = () => {
         description: "Lifetime Registration Fee",
         order_id: orderData.order.id,
         handler: async function (response) {
-          toast.success("Payment successful! Creating profile...");
-          // Backend registration API call goes here
-          navigate("/login");
+          try {
+            const { data } = await api.post("/auth/register", formData);
+            login({ id: data.id, email: data.email }, data.token);
+            toast.success("Payment verified! Welcome to Date-NearMe.");
+            navigate("/radar");
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Registration failed");
+            navigate("/login");
+          }
         },
         prefill: { email: formData.email },
-        theme: { color: "#000000" }, // Updated to match the black/white theme
+        theme: { color: "#ff2453" },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      toast.error(error.message || "Payment failed");
+      toast.error(error.response?.data?.message || error.message || "Payment initiation failed");
     } finally {
       setLoading(false);
     }

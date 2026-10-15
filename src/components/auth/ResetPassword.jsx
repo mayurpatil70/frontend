@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import api from "../../api/axiosConfig";
+
 const ResetPassword = () => {
   const { token } = useParams(); // Grabs the token from the URL
   const navigate = useNavigate();
@@ -26,22 +28,16 @@ const ResetPassword = () => {
     const toastId = toast.loading("Updating password...");
 
     try {
-      // Send the token to the backend route we just built!
-      const res = await fetch(`/api/auth/reset-password/${token}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: passwords.password }),
+      const { data } = await api.put(`/auth/reset-password/${token}`, {
+        password: passwords.password,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      toast.success("Password updated successfully! You can now log in.", {
+      toast.success(data.message || "Password updated successfully! You can now log in.", {
         id: toastId,
       });
       navigate("/login");
     } catch (error) {
-      toast.error(error.message || "Failed to update password", {
+      toast.error(error.response?.data?.message || error.message || "Failed to update password", {
         id: toastId,
       });
     } finally {

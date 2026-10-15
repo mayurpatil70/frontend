@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "../../api/axiosConfig";
+import { AuthContext } from "../../Context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
@@ -16,25 +19,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Replace with your actual backend login logic when ready
-      /*
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
-            // Save token to localStorage here
-            */
-
-      setTimeout(() => {
-        setLoading(false);
-        toast.success("Successfully logged in!");
-        navigate("/radar");
-      }, 1000);
+      const { data } = await api.post("/auth/login", formData);
+      login({ id: data.id, email: data.email }, data.token);
+      toast.success("Successfully logged in!");
+      navigate("/radar");
     } catch (error) {
-      toast.error(error.message || "Login failed");
+      toast.error(error.response?.data?.message || error.message || "Login failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -46,25 +37,12 @@ const Login = () => {
     if (!emailToReset) return;
     const toastId = toast.loading("Sending reset link...");
     try {
-      // Calls your newly created backend route
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailToReset }),
+      const { data } = await api.post("/auth/forgot-password", { email: emailToReset });
+      toast.success(data.message || `Password reset link sent to ${emailToReset}`, {
+        id: toastId,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success(
-          data.message || `Password reset link sent to ${emailToReset}`,
-          { id: toastId },
-        );
-      } else {
-        throw new Error(data.message || "Failed to send reset link");
-      }
     } catch (error) {
-      toast.error(error.message || "Network error. Is the backend running?", {
+      toast.error(error.response?.data?.message || "Failed to send reset link", {
         id: toastId,
       });
     }
